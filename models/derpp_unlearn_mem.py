@@ -7,7 +7,7 @@ from utils.buffer import Buffer
 from torch.nn import functional as F
 from models.utils.continual_model import ContinualModel
 from models import register_model
-from utils.args import *
+from utils.args import add_rehearsal_args, ArgumentParser
 import torch.nn as nn
 import torch.optim as optim
 from copy import deepcopy
@@ -18,26 +18,6 @@ from torch.utils.data import TensorDataset, DataLoader
 epsilon = 1E-20
 
 
-def get_parser() -> ArgumentParser:
-    parser = ArgumentParser(description='Continual learning via'
-                                        ' Dark Experience Replay++ with Unlearning Memory.')
-    add_management_args(parser)
-    add_experiment_args(parser)
-    add_rehearsal_args(parser)
-    parser.add_argument('--alpha', type=float, required=True,
-                        help='Penalty weight.')
-    parser.add_argument('--beta', type=float, required=True,
-                        help='Penalty weight.')
-
-    # Unlearning parameters
-    parser.add_argument('--delta', type=float, default=0.00001,
-                        help='Unlearning rate for plasticity enhancement')
-    parser.add_argument('--tau', type=float, default=0.00001,
-                        help='Fisher information decay rate')
-    parser.add_argument('--unlearn_frequency', type=int, default=1,
-                        help='How often to perform unlearning (every N steps)')
-
-    return parser
 
 
 @register_model('derpp-unlearn-mem')
@@ -45,11 +25,29 @@ class DerppUnlearnMem(ContinualModel):
     NAME = 'derpp_unlearn_mem'
     COMPATIBILITY = ['class-il', 'domain-il', 'task-il', 'general-continual']
 
-    def __init__(self, backbone, loss, args, transform):
-        super(DerppUnlearnMem, self).__init__(backbone, loss, args, transform)
+    @staticmethod
+    def get_parser(parser) -> ArgumentParser:
+        add_rehearsal_args(parser)
+        parser.add_argument('--alpha', type=float, required=True,
+                            help='Penalty weight.')
+        parser.add_argument('--beta', type=float, required=True,
+                            help='Penalty weight.')
+
+        # Unlearning parameters
+        parser.add_argument('--delta', type=float, default=0.00001,
+                            help='Unlearning rate for plasticity enhancement')
+        parser.add_argument('--tau', type=float, default=0.00001,
+                            help='Fisher information decay rate')
+        parser.add_argument('--unlearn_frequency', type=int, default=1,
+                            help='How often to perform unlearning (every N steps)')
+
+        return parser
+
+    def __init__(self, backbone, loss, args, transform, dataset=None):
+        super(DerppUnlearnMem, self).__init__(backbone, loss, args, transform, dataset=dataset)
 
         # Initialize simple reservoir buffer
-        self.buffer = Buffer(self.args.buffer_size, self.device)
+        self.buffer = Buffer(self.args.buffer_size)
 
         self.temp = copy.deepcopy(self.net).to(self.device)
         self.temp_opt = torch.optim.SGD(self.temp.parameters(), lr=0.01)
