@@ -6,6 +6,7 @@
 from utils.buffer import Buffer
 from torch.nn import functional as F
 from models.utils.continual_model import ContinualModel
+from models import register_model
 from utils.args import *
 import torch.nn as nn
 import torch.optim as optim
@@ -39,6 +40,7 @@ def get_parser() -> ArgumentParser:
     return parser
 
 
+@register_model('derpp-unlearn-mem')
 class DerppUnlearnMem(ContinualModel):
     NAME = 'derpp_unlearn_mem'
     COMPATIBILITY = ['class-il', 'domain-il', 'task-il', 'general-continual']
