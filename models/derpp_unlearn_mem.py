@@ -79,6 +79,8 @@ class DerppUnlearnMem(ContinualModel):
         if not self.buffer.is_empty() and self.step_counter % self.unlearn_frequency == 0:
             buf_inputs_unlearn, buf_labels_unlearn, _ = self.buffer.get_data(
                 self.args.minibatch_size, transform=self.transform)
+            buf_inputs_unlearn = buf_inputs_unlearn.to(self.device)
+            buf_labels_unlearn = buf_labels_unlearn.to(self.device)
             self.unlearn(inputs=buf_inputs_unlearn, labels=buf_labels_unlearn)
 
         self.opt.zero_grad()
@@ -89,11 +91,15 @@ class DerppUnlearnMem(ContinualModel):
             # Standard DER++ buffer replay with logits and classification loss
             buf_inputs, _, buf_logits = self.buffer.get_data(
                 self.args.minibatch_size, transform=self.transform)
+            buf_inputs = buf_inputs.to(self.device)
+            buf_logits = buf_logits.to(self.device)
             buf_outputs = self.net(buf_inputs)
             loss += self.args.alpha * F.mse_loss(buf_outputs, buf_logits)
 
             buf_inputs, buf_labels, _ = self.buffer.get_data(
                 self.args.minibatch_size, transform=self.transform)
+            buf_inputs = buf_inputs.to(self.device)
+            buf_labels = buf_labels.to(self.device)
             buf_outputs = self.net(buf_inputs)
             loss += self.args.beta * self.loss(buf_outputs, buf_labels)
 
