@@ -34,11 +34,11 @@ class DerppUnlearnMem(ContinualModel):
                             help='Penalty weight.')
 
         # Unlearning parameters
-        parser.add_argument('--delta', type=float, default=0.00001,
+        parser.add_argument('--delta', type=float, default=0.000001,
                             help='Unlearning rate for plasticity enhancement')
         parser.add_argument('--tau', type=float, default=0.00001,
                             help='Fisher information decay rate')
-        parser.add_argument('--unlearn_frequency', type=int, default=1,
+        parser.add_argument('--unlearn_frequency', type=int, default=5,
                             help='How often to perform unlearning (every N steps)')
 
         return parser
