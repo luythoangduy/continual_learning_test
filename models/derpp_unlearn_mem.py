@@ -76,13 +76,13 @@ class DerppUnlearnMem(ContinualModel):
         self.step_counter += 1
 
         # Unlearn on buffer data to enhance plasticity
-        if not self.buffer.is_empty() and self.step_counter % self.unlearn_frequency == 0:
-            buf_inputs_unlearn, buf_labels_unlearn, _ = self.buffer.get_data(
-                self.args.minibatch_size, transform=self.transform)
-            buf_inputs_unlearn = buf_inputs_unlearn.to(self.device)
-            buf_labels_unlearn = buf_labels_unlearn.to(self.device)
-            self.unlearn(inputs=buf_inputs_unlearn, labels=buf_labels_unlearn)
-
+        # if not self.buffer.is_empty() and self.step_counter % self.unlearn_frequency == 0:
+        #     buf_inputs_unlearn, buf_labels_unlearn, _ = self.buffer.get_data(
+        #         self.args.minibatch_size, transform=self.transform)
+        #     buf_inputs_unlearn = buf_inputs_unlearn.to(self.device)
+        #     buf_labels_unlearn = buf_labels_unlearn.to(self.device)
+        #     self.unlearn(inputs=buf_inputs_unlearn, labels=buf_labels_unlearn)
+        self.unlearn(inputs=inputs, labels=labels)
         self.opt.zero_grad()
         outputs = self.net(inputs)
         loss = self.loss(outputs, labels)
